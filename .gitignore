@@ -163,4 +163,5 @@ cython_debug/
 
 # Music files from scraper
 *.mp3
+/previews
 songs_metadata.json
