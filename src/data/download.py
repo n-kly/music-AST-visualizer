@@ -9,10 +9,30 @@ def read_popular_songs(file_path):
         songs = file.readlines()
     return [song.strip() for song in songs]
 
-# Download preview using ytmdl
-def download_preview(song_name, output_dir='previews'):
-    command = f'ytmdl "{song_name}" -q -o {output_dir}'
-    subprocess.run(command, shell=True, check=True)
+# Download preview using ytmdl and convert to 16kHz mono MP3
+def download_and_convert(song_name, output_dir='previews'):
+    temp_output_dir = os.path.join(output_dir, 'temp')
+    os.makedirs(temp_output_dir, exist_ok=True)
+    
+    # Download the song using ytmdl to the temporary directory
+    command_download = f'ytmdl "{song_name}" -q -o {temp_output_dir}'
+    subprocess.run(command_download, shell=True, check=True)
+    
+    # Find the downloaded file (assuming there's only one file in the temp directory)
+    downloaded_files = os.listdir(temp_output_dir)
+    if not downloaded_files:
+        raise FileNotFoundError(f"No files found in {temp_output_dir} after download.")
+    
+    temp_output = os.path.join(temp_output_dir, downloaded_files[0])
+    final_output = os.path.join(output_dir, f"{song_name.replace(' ', '_')}.mp3")
+
+    # Convert the audio to 16kHz mono MP3 using ffmpeg
+    command_convert = f'ffmpeg -i "{temp_output}" -ac 1 -ar 16000 "{final_output}"'
+    subprocess.run(command_convert, shell=True, check=True)
+
+    # Remove the temporary files
+    for file in downloaded_files:
+        os.remove(os.path.join(temp_output_dir, file))
 
 # Main function
 def main():
@@ -31,8 +51,8 @@ def main():
     os.makedirs('metadata', exist_ok=True)
     
     for song_name in tqdm(popular_songs, desc="Downloading popular songs"):
-        # Download preview
-        download_preview(song_name)
+        # Download and convert preview
+        download_and_convert(song_name)
         
         # For simplicity, we'll assume the song metadata is available after downloading
         # In practice, you might need to parse the downloaded files or use another method to get metadata
