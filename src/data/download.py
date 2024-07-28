@@ -37,7 +37,7 @@ def download_and_convert(song_name, output_dir='previews'):
 # Main function
 def main():
     # File containing the list of popular songs in the pop genre
-    popular_songs_file = 'popular_songs.txt'
+    popular_songs_file = './popular_songs.txt'
     
     # Read popular songs from the text file
     popular_songs = read_popular_songs(popular_songs_file)

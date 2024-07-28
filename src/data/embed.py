@@ -42,7 +42,7 @@ if index_name not in pc.list_indexes().names():
 
 index = pc.Index(index_name)
 
-def generate_embedding(audio_path):
+def generate_embedding(model, audio_path):
     waveform, original_sample_rate = torchaudio.load(audio_path)
     waveform = waveform.squeeze().numpy()
 
