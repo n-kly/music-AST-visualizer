@@ -73,6 +73,7 @@ def download_and_convert(song_name, output_dir='previews'):
 
 # Main function
 def main():
+<<<<<<< HEAD
     # Spotify authentication
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
 
@@ -88,6 +89,11 @@ def main():
     popular_songs_file = 'popular_songs.txt'
     write_popular_songs_to_file(popular_songs_file, popular_songs)
 
+=======
+    # File containing the list of popular songs in the pop genre
+    popular_songs_file = './popular_songs.txt'
+    
+>>>>>>> 9c7968056b8a3d1458a48f292f1de44cf737206a
     # Read popular songs from the text file
     popular_songs = read_popular_songs(popular_songs_file)
     
