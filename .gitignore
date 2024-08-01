@@ -164,3 +164,7 @@ cython_debug/
 # Music files from scraper
 *.mp3
 /previews
+
+# VSCODE
+.vscode
+/.vscode

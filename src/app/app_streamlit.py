@@ -219,19 +219,35 @@ def add_click_audio_script():
     </script>
     """, unsafe_allow_html=True)
 
-st.title("Spotify Embeddings Visualization")
+# def autoplay_audio(file_path: str):
+#     with open(file_path, "rb") as f:
+#         data = f.read()
+#         b64 = base64.b64encode(data).decode()
+#         md = f"""
+#             <audio controls autoplay="true">
+#             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+#             </audio>
+#             """
+#         st.markdown(
+#             md,
+#             unsafe_allow_html=True,
+#         )
+
+st.title("Song Embeddings Visualization")
 
 tab1, tab2, tab3 = st.tabs(["Song Embeddings", "Artist Embeddings", "Genre Embeddings"])
 
 with tab1:
-    fig1 = create_plot(song_embeddings, song_metadata, song_clusters, "K-means Clustering on Spotify Song Embeddings (PCA-Reduced)", "song")
+    fig1 = create_plot(song_embeddings, song_metadata, song_clusters, "K-means Clustering on Song Embeddings (PCA-Reduced)", "song")
     st.plotly_chart(fig1)
     add_click_audio_script()
 
 with tab2:
-    fig2 = create_plot(artist_embeddings, artist_metadata, artist_clusters, "K-means Clustering on Spotify Artist Embeddings (PCA-Reduced)", "artist")
+    fig2 = create_plot(artist_embeddings, artist_metadata, artist_clusters, "K-means Clustering on  Artist Embeddings (PCA-Reduced)", "artist")
     st.plotly_chart(fig2)
 
 with tab3:
-    fig3 = create_plot(genre_embeddings, genre_metadata, genre_clusters, "K-means Clustering on Spotify Genre Embeddings (PCA-Reduced)", "genre")
+    fig3 = create_plot(genre_embeddings, genre_metadata, genre_clusters, "K-means Clustering on Genre Embeddings (PCA-Reduced)", "genre")
     st.plotly_chart(fig3)
+
+    
