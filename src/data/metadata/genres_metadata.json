@@ -2959,6 +2959,16 @@
             "popularity": 82,
             "cover_image_url": "https://i.scdn.co/image/ab67616d0000b2734a82bda3507d50ac3e039bb0",
             "preview_url": "https://p.scdn.co/mp3-preview/c93b9442b4672b7384b08802f2e43f914274f49c?cid=11419dac9f88424c93dd910d7d82a6bc"
+        },
+        {
+            "id": "2R4AlwtrrkMaRKojcTIzmL",
+            "name": "For the First Time",
+            "artist": "Mac DeMarco",
+            "album": "This Old Dog",
+            "genre": "indie",
+            "popularity": 81,
+            "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273d18fa8f63707115cb1b38f65",
+            "preview_url": "https://p.scdn.co/mp3-preview/6e7905297d920bd2434923bd64eb9b012b4d7610?cid=11419dac9f88424c93dd910d7d82a6bc"
         }
     ],
     "indie-pop": [
@@ -4375,6 +4385,16 @@
             "popularity": 89,
             "cover_image_url": "https://i.scdn.co/image/ab67616d0000b27322fd802bc61db666c7c81aa8",
             "preview_url": "https://p.scdn.co/mp3-preview/ca7bdcb691fb64a5af8a3253b89356390664fcf1?cid=11419dac9f88424c93dd910d7d82a6bc"
+        },
+        {
+            "id": "7sO5G9EABYOXQKNPNiE9NR",
+            "name": "Ric Flair Drip (with Metro Boomin)",
+            "artist": "Offset",
+            "album": "Without Warning",
+            "genre": "pop",
+            "popularity": 84,
+            "cover_image_url": "https://i.scdn.co/image/ab67616d0000b2730db43130a9aaa7bae56967ed",
+            "preview_url": "https://p.scdn.co/mp3-preview/89cee86b4663ac093731d7a433491dd71e286f61?cid=11419dac9f88424c93dd910d7d82a6bc"
         }
     ],
     "power-pop": [
@@ -5441,6 +5461,16 @@
             "popularity": 86,
             "cover_image_url": "https://i.scdn.co/image/ab67616d0000b2738399047ff71200928f5b6508",
             "preview_url": "https://p.scdn.co/mp3-preview/788a028fa3a33141c817b1064e3159006edeaa8d?cid=11419dac9f88424c93dd910d7d82a6bc"
+        },
+        {
+            "id": "60a0Rd6pjrkxjPbaKzXjfq",
+            "name": "In the End",
+            "artist": "Linkin Park",
+            "album": "Hybrid Theory (Bonus Edition)",
+            "genre": "rock",
+            "popularity": 87,
+            "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273e2f039481babe23658fc719a",
+            "preview_url": "https://p.scdn.co/mp3-preview/b5ee275ca337899f762b1c1883c11e24a04075b0?cid=11419dac9f88424c93dd910d7d82a6bc"
         }
     ],
     "rock-n-roll": [
@@ -6001,6 +6031,16 @@
             "popularity": 82,
             "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273cc04ff3e70e146ba9abacf40",
             "preview_url": "https://p.scdn.co/mp3-preview/6e29e6750dcda8159aea83561faf2161a0acacb2?cid=11419dac9f88424c93dd910d7d82a6bc"
+        },
+        {
+            "id": "0tgVpDi06FyKpA1z0VMD4v",
+            "name": "Perfect",
+            "artist": "Ed Sheeran",
+            "album": "\u00f7 (Deluxe)",
+            "genre": "singer-songwriter",
+            "popularity": 85,
+            "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96",
+            "preview_url": "https://p.scdn.co/mp3-preview/4e30857a3c7da3f8891483643e310bb233afadd2?cid=11419dac9f88424c93dd910d7d82a6bc"
         }
     ],
     "songwriter": [
@@ -6253,6 +6293,16 @@
             "popularity": 82,
             "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273cc04ff3e70e146ba9abacf40",
             "preview_url": "https://p.scdn.co/mp3-preview/6e29e6750dcda8159aea83561faf2161a0acacb2?cid=11419dac9f88424c93dd910d7d82a6bc"
+        },
+        {
+            "id": "0tgVpDi06FyKpA1z0VMD4v",
+            "name": "Perfect",
+            "artist": "Ed Sheeran",
+            "album": "\u00f7 (Deluxe)",
+            "genre": "songwriter",
+            "popularity": 85,
+            "cover_image_url": "https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96",
+            "preview_url": "https://p.scdn.co/mp3-preview/4e30857a3c7da3f8891483643e310bb233afadd2?cid=11419dac9f88424c93dd910d7d82a6bc"
         }
     ],
     "soul": [
