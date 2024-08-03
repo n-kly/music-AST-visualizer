@@ -1,6 +1,6 @@
 # Audio Embeddings Visualizer
 
-![Demo Video](link-to-demo-video)
+[![YouTube](http://i.ytimg.com/vi/oolIoagS3B0/hqdefault.jpg)](https://www.youtube.com/watch?v=oolIoagS3B0)
 
 ## Overview
 
