@@ -42,14 +42,17 @@ def fetch_embeddings(index_name, vector_count, dimensions):
 
     return np.array(embeddings), metadata, vector_count
 
-pinecone_index_name = 'custom-song-embeddings'
+pinecone_ast_name = 'ast-song-embeddings'
+pinecone_custom_name = 'custom-song-embeddings'
 #  -------------------------------------------------------Fetch song embeddings---------------------------------------------------------
-song_embeddings, song_metadata, song_clusters = fetch_embeddings(pinecone_index_name, 768, 768)
+ast_song_embeddings, ast_song_metadata, ast_song_clusters = fetch_embeddings(pinecone_ast_name, 768, 768)
+custom_song_embeddings, custom_song_metadata, custom_song_clusters = fetch_embeddings(pinecone_custom_name, 768, 768)
 
-#  -------------------------------------------------------Fetch artist embeddings---------------------------------------------------------
 # Connect to the Pinecone index
-index = pc.Index(pinecone_index_name)
+ast_index = pc.Index(pinecone_ast_name)
+custom_index = pc.Index(pinecone_custom_name)
 
+#  -------------------------------------------------------Fetch ast artist embeddings---------------------------------------------------------
 # Load artist metadata
 with open('../data/metadata/artist_metadata.json') as f:
     artist_metadata = json.load(f)
@@ -69,7 +72,7 @@ def fetch_embeddings_by_ids(index, song_ids):
 all_song_ids = [song['id'] for songs in artist_metadata.values() for song in songs]
 
 # Fetch embeddings for all song IDs
-song_embeddings_dict = fetch_embeddings_by_ids(index, all_song_ids)
+song_embeddings_dict = fetch_embeddings_by_ids(ast_index, all_song_ids)
 
 # Debugging: Print some IDs to verify
 #print("Fetched song IDs from Pinecone index:", list(song_embeddings_dict.keys())[:10])
@@ -82,12 +85,10 @@ for artist, songs in artist_metadata.items():
         song_id = song['id']
         if song_id in song_embeddings_dict:
             embeddings.append(song_embeddings_dict[song_id])
-        else:
-            print(f"Song ID {song_id} not found in Pinecone index")
+        
     if embeddings:
         artist_embeddings_dict[artist] = np.mean(embeddings, axis=0)
-    else:
-        print(f"No embeddings found for artist {artist}")
+  
 
 # Convert artist embeddings to a list of tuples (artist, embedding)
 artist_embeddings_list = [(artist, embedding) for artist, embedding in artist_embeddings_dict.items()]
@@ -98,8 +99,8 @@ if not artist_embeddings_list:
 
 # Separate artist names and embeddings
 artist_names, embeddings = zip(*artist_embeddings_list)
-artist_embeddings = np.array(embeddings)
-artist_clusters = len(artist_metadata.values())
+ast_artist_embeddings = np.array(embeddings)
+ast_artist_clusters = len(artist_metadata.values())
 # Transform artist metadata to the new format
 transformed_artist_metadata = []
 for artist, songs in artist_metadata.items():
@@ -111,9 +112,9 @@ for artist, songs in artist_metadata.items():
         'songs': song_names,
         'id': artist  # Assuming artist name is the unique ID
     })
-artist_metadata = transformed_artist_metadata
+ast_artist_metadata = transformed_artist_metadata
 
-#  -------------------------------------------------------Fetch genre embeddings---------------------------------------------------------
+#  -------------------------------------------------------Fetch ast genre embeddings---------------------------------------------------------
 # Load genre metadata
 with open('../data/metadata/genres_metadata.json') as f:
     genre_metadata = json.load(f)
@@ -122,7 +123,7 @@ with open('../data/metadata/genres_metadata.json') as f:
 all_genre_song_ids = [song['id'] for songs in genre_metadata.values() for song in songs]
 
 # Fetch embeddings for all song IDs
-genre_song_embeddings_dict = fetch_embeddings_by_ids(index, all_genre_song_ids)
+genre_song_embeddings_dict = fetch_embeddings_by_ids(ast_index, all_genre_song_ids)
 
 # Calculate average embeddings for each genre
 genre_embeddings_dict = {}
@@ -132,12 +133,10 @@ for genre, songs in genre_metadata.items():
         song_id = song['id']
         if song_id in genre_song_embeddings_dict:
             embeddings.append(genre_song_embeddings_dict[song_id])
-        else:
-            print(f"Song ID {song_id} not found in Pinecone index")
+      
     if embeddings:
         genre_embeddings_dict[genre] = np.mean(embeddings, axis=0)
-    else:
-        print(f"No embeddings found for genre {genre}")
+
 
 # Convert genre embeddings to a list of tuples (genre, embedding)
 genre_embeddings_list = [(genre, embedding) for genre, embedding in genre_embeddings_dict.items()]
@@ -148,8 +147,8 @@ if not genre_embeddings_list:
 
 # Separate genre names and embeddings
 genre_names, genre_embeddings = zip(*genre_embeddings_list)
-genre_embeddings = np.array(genre_embeddings)
-genre_clusters = len(genre_metadata.values())
+ast_genre_embeddings = np.array(genre_embeddings)
+ast_genre_clusters = len(genre_metadata.values())
 # Transform genre metadata to the new format
 transformed_genre_metadata = []
 for genre, songs in genre_metadata.items():
@@ -159,8 +158,116 @@ for genre, songs in genre_metadata.items():
         'id': genre,  # Assuming genre name is the unique ID
         'songs': song_names
     })
-genre_metadata = transformed_genre_metadata
-#genre_embeddings, genre_metadata, genre_clusters = fetch_embeddings('ast-genre-embeddings', 768, 768)
+ast_genre_metadata = transformed_genre_metadata
+
+#  -------------------------------------------------------Fetch custom artist embeddings---------------------------------------------------------
+# Load artist metadata
+with open('../data/metadata/artist_metadata.json') as f:
+    artist_metadata = json.load(f)
+
+# Function to fetch embeddings from Pinecone based on song IDs
+def fetch_embeddings_by_ids(index, song_ids):
+    embeddings = {}
+    batch_size = 100  # Adjust batch size as needed
+    for i in range(0, len(song_ids), batch_size):
+        batch_ids = song_ids[i:i + batch_size]
+        response = index.fetch(ids=batch_ids)
+        for song_id, vector_data in response['vectors'].items():
+            embeddings[song_id] = vector_data['values']
+    return embeddings
+
+# Get all song IDs from the artist metadata
+all_song_ids = [song['id'] for songs in artist_metadata.values() for song in songs]
+
+# Fetch embeddings for all song IDs
+song_embeddings_dict = fetch_embeddings_by_ids(custom_index, all_song_ids)
+
+# Debugging: Print some IDs to verify
+#print("Fetched song IDs from Pinecone index:", list(song_embeddings_dict.keys())[:10])
+
+# Calculate average embeddings for each artist
+artist_embeddings_dict = {}
+for artist, songs in artist_metadata.items():
+    embeddings = []
+    for song in songs:
+        song_id = song['id']
+        if song_id in song_embeddings_dict:
+            embeddings.append(song_embeddings_dict[song_id])
+      
+    if embeddings:
+        artist_embeddings_dict[artist] = np.mean(embeddings, axis=0)
+   
+
+# Convert artist embeddings to a list of tuples (artist, embedding)
+artist_embeddings_list = [(artist, embedding) for artist, embedding in artist_embeddings_dict.items()]
+
+# Check if the list is not empty
+if not artist_embeddings_list:
+    raise ValueError("No artist embeddings found.")
+
+# Separate artist names and embeddings
+artist_names, embeddings = zip(*artist_embeddings_list)
+custom_artist_embeddings = np.array(embeddings)
+custom_artist_clusters = len(artist_metadata.values())
+# Transform artist metadata to the new format
+transformed_artist_metadata = []
+for artist, songs in artist_metadata.items():
+    song_names = [song['name'] for song in songs]
+    genres = list({song['genre'] for song in songs})
+    transformed_artist_metadata.append({
+        'genres': genres,
+        'name': artist,
+        'songs': song_names,
+        'id': artist  # Assuming artist name is the unique ID
+    })
+custom_artist_metadata = transformed_artist_metadata
+
+#  -------------------------------------------------------Fetch custom genre embeddings---------------------------------------------------------
+# Load genre metadata
+with open('../data/metadata/genres_metadata.json') as f:
+    genre_metadata = json.load(f)
+
+# Get all song IDs from the genre metadata
+all_genre_song_ids = [song['id'] for songs in genre_metadata.values() for song in songs]
+
+# Fetch embeddings for all song IDs
+genre_song_embeddings_dict = fetch_embeddings_by_ids(custom_index, all_genre_song_ids)
+
+# Calculate average embeddings for each genre
+genre_embeddings_dict = {}
+for genre, songs in genre_metadata.items():
+    embeddings = []
+    for song in songs:
+        song_id = song['id']
+        if song_id in genre_song_embeddings_dict:
+            embeddings.append(genre_song_embeddings_dict[song_id])
+       
+    if embeddings:
+        genre_embeddings_dict[genre] = np.mean(embeddings, axis=0)
+
+
+# Convert genre embeddings to a list of tuples (genre, embedding)
+genre_embeddings_list = [(genre, embedding) for genre, embedding in genre_embeddings_dict.items()]
+
+# Check if the list is not empty
+if not genre_embeddings_list:
+    raise ValueError("No genre embeddings found.")
+
+# Separate genre names and embeddings
+genre_names, genre_embeddings = zip(*genre_embeddings_list)
+custom_genre_embeddings = np.array(genre_embeddings)
+custom_genre_clusters = len(genre_metadata.values())
+# Transform genre metadata to the new format
+transformed_genre_metadata = []
+for genre, songs in genre_metadata.items():
+    song_names = [song['name'] for song in songs]
+    transformed_genre_metadata.append({
+        'name': genre,
+        'id': genre,  # Assuming genre name is the unique ID
+        'songs': song_names
+    })
+custom_genre_metadata = transformed_genre_metadata
+
 
 def voronoi_finite_polygons_2d(vor, radius=None):
     if vor.points.shape[1] != 2:
@@ -231,7 +338,7 @@ def generate_color(name, factor=0.25):
 
     return '#' + pastel_color_hex
 
-def create_plot(embeddings, metadata, clusters, title, plot_type, model):
+def create_plot(plot_type, model):
     # Normalize embeddings
     # embeddings = (embeddings - embeddings.mean(axis=0)) / embeddings.std(axis=0)
 
@@ -241,12 +348,53 @@ def create_plot(embeddings, metadata, clusters, title, plot_type, model):
     #     embeddings = custombusdhadsghu
 
     pca = PCA(n_components=2)
-    reduced_embeddings = pca.fit_transform(embeddings)
+    if model == "AST":
+        if plot_type == "song":
+            reduced_embeddings = pca.fit_transform(ast_song_embeddings)
+            clusters = ast_song_clusters
+            title = "K-means Clustering on Song Embeddings (PCA-Reduced)"
+            metadata = ast_song_metadata
+            if len(reduced_embeddings) != len(ast_song_metadata):
+                metadata = ast_song_metadata[:len(reduced_embeddings)]
+        elif plot_type == "artist":
+            reduced_embeddings = pca.fit_transform(ast_artist_embeddings)
+            clusters = ast_artist_clusters
+            title = "K-means Clustering on Artist Embeddings (PCA-Reduced)"
+            metadata = ast_artist_metadata
+            if len(reduced_embeddings) != len(ast_artist_metadata):
+                metadata = ast_artist_metadata[:len(reduced_embeddings)]
+        elif plot_type == "genre":  
+            reduced_embeddings = pca.fit_transform(ast_genre_embeddings)
+            clusters = ast_genre_clusters
+            title = "K-means Clustering on Genre Embeddings (PCA-Reduced)"
+            metadata = ast_genre_metadata
+            if len(reduced_embeddings) != len(ast_genre_metadata):
+                metadata = ast_genre_metadata[:len(reduced_embeddings)]
+    elif model == "CUSTOM":
+        if plot_type == "song":
+            reduced_embeddings = pca.fit_transform(custom_song_embeddings)
+            clusters = custom_song_clusters
+            title = "K-means Clustering on Song Embeddings (PCA-Reduced)"
+            metadata = custom_song_metadata
+            if len(reduced_embeddings) != len(custom_song_metadata):
+                metadata = custom_song_metadata[:len(reduced_embeddings)]
+        elif plot_type == "artist":
+            reduced_embeddings = pca.fit_transform(custom_artist_embeddings)
+            clusters = custom_artist_clusters
+            title = "K-means Clustering on Artist Embeddings (PCA-Reduced)"
+            metadata = custom_artist_metadata
+            if len(reduced_embeddings) != len(custom_artist_metadata):
+                metadata = custom_artist_metadata[:len(reduced_embeddings)]
+        elif plot_type == "genre":  
+            reduced_embeddings = pca.fit_transform(custom_genre_embeddings)
+            clusters = custom_genre_clusters
+            title = "K-means Clustering on Genre Embeddings (PCA-Reduced)"
+            metadata = custom_genre_metadata
+            if len(reduced_embeddings) != len(custom_genre_metadata):
+                metadata = custom_genre_metadata[:len(reduced_embeddings)]
 
     # Ensure lengths match
-    if len(reduced_embeddings) != len(metadata):
-        print(f"Warning: Length of reduced_embeddings ({len(reduced_embeddings)}) does not match length of metadata ({len(metadata)}).")
-        metadata = metadata[:len(reduced_embeddings)]
+    
     
     if plot_type == "genre":
         n_clusters = max(clusters // 5, 1)  # For genre embeddings
@@ -350,7 +498,6 @@ def create_plot(embeddings, metadata, clusters, title, plot_type, model):
         height=800,
         plot_bgcolor='rgba(0,0,0,0)'
     )
-    print(df['x'].min(), df['x'].max(), df['y'].min(), df['y'].max())
     margin_x = (df['x'].max() - df['x'].min()) * 0.1
     margin_y = (df['y'].max() - df['y'].min()) * 0.1
     
@@ -421,39 +568,39 @@ app.layout = dbc.Container([
     Input('template-dropdown', 'value')
 )
 def render_content(tab, modelName):
-    # fig = create_plot(
-    #     model=modelName,
-    #     plot_type=tab,
-    # )
+    fig = create_plot(
+         plot_type=tab,
+         model=modelName,
+    )
 
-
-    if tab == 'song':
-        fig = create_plot(
-            embeddings = song_embeddings,
-            metadata = song_metadata,
-            clusters = song_clusters,
-            title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
-            plot_type = "song",
-            model = modelName)
-    elif tab == 'artist':
-        fig = create_plot(
-            embeddings = artist_embeddings,
-            metadata = artist_metadata,
-            clusters = artist_clusters,
-            title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
-            plot_type = "artist",
-            model = modelName)
-    elif tab == 'genre':
-        fig = create_plot(
-            embeddings = genre_embeddings,
-            metadata = genre_metadata,
-            clusters = genre_clusters,
-            title = "K-means Clustering on Genre Embeddings (PCA-Reduced)",
-            plot_type = "genre",
-            model = modelName)
-    else:
-        fig = {}
     return None, fig
+    # if tab == 'song':
+    #     fig = create_plot(
+    #         embeddings = song_embeddings,
+    #         metadata = song_metadata,
+    #         clusters = song_clusters,
+    #         title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
+    #         plot_type = "song",
+    #         model = modelName)
+    # elif tab == 'artist':
+    #     fig = create_plot(
+    #         embeddings = artist_embeddings,
+    #         metadata = artist_metadata,
+    #         clusters = artist_clusters,
+    #         title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
+    #         plot_type = "artist",
+    #         model = modelName)
+    # elif tab == 'genre':
+    #     fig = create_plot(
+    #         embeddings = genre_embeddings,
+    #         metadata = genre_metadata,
+    #         clusters = genre_clusters,
+    #         title = "K-means Clustering on Genre Embeddings (PCA-Reduced)",
+    #         plot_type = "genre",
+    #         model = modelName)
+    # else:
+    #     fig = {}
+    # return None, fig
 
 @app.callback(
     Output('audio-player', 'src'),
