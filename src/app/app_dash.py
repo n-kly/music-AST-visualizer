@@ -9,6 +9,9 @@ import plotly.graph_objects as go
 from scipy.spatial import Voronoi
 import hashlib
 import json
+from dash import Dash, html, dcc
+from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 
 # Load environment variables
 load_dotenv()
@@ -497,11 +500,6 @@ def create_plot(plot_type, model):
     fig.update_yaxes(minallowed=df['y'].min()-margin_y, maxallowed=(df['y'].max()+margin_y))
     
     return fig
-
-
-from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
-import dash_bootstrap_components as dbc
 
 # Create the Dash appS
 app = Dash(
