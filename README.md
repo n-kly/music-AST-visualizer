@@ -4,17 +4,22 @@
 
 ## Overview
 
-This project is a comprehensive audio embeddings visualizer designed to analyze and visualize the embedding space of songs. The system processes raw audio waveforms into mel spectrograms, feeds the data into a custom transformer encoder model, and visualizes the embeddings using PCA and k-means clustering. The data is scraped from YouTube, with metadata and previews provided by Spotify. The visualizations are created using Dash and Plotly, offering an interactive and insightful way to explore the audio embedding space.
+This project is a data visualization tool for music embeddings that lets you explore the relationships between different songs, artists, and genres. It converts raw audio files into deep audio embeddings and then visualizes these embeddings to show how similar or different the songs are from each other.
+
+We source our visualisation data by scraping songs from YouTube music and fetching metadata and preview links from Spotify; the raw audio from this is first preprocessed to extract audio features by converting the waveforms into mel spectrograms, which are a type of visual representation of sound. Traditional computer vision techniques can now be applied here to learn patterns and representations of the audio by passing the mel spectrograms into a pre-trained audio transformer encoder model such as [AST](https://arxiv.org/abs/2007.14062). The dimensionality of these embeddings can then be reduced from 768 to 2 by using principal component analysis to map the embeddings into a 2D space, at which point a k-means clustering algorithm is used to identify groups of similar sounds.  
+
+However, we found that there were few pre-trained available models that were specialized for musical embeddings, so we decided to take a shot at making our own. We created a simple 2.4M parameter audio spectrogram transformer taking inspiration from state-of-the-art architectures trained on ~200 hours of music from this [dataset](https://huggingface.co/datasets/lewtun/music_genres). For this small a model, the performance for this task was remarkable, being able to identify general audio patterns to differentiate between most music types and genres; however, due to limitations in our dataset size/ quality and limited compute, the model has a lot of room for improvement.
+
 
 ## Model Overview
 
 ### Preprocessing
 
-The audio preprocessing pipeline is a crucial part of this project. It converts raw waveforms into mel spectrograms, breaks them into chunks, and further divides them into patches.
+The audio preprocessing pipeline is a crucial part of this project. It converts raw waveforms into mel spectrograms, breaks them into chunks, and divides them further into patches.
 
-- **Waveform to Mel Spectrogram**: Converts audio signals into 128 mel spectrogram features.
-- **Chunking**: Divides the spectrogram into overlapping chunks of 1024 frames each.
-- **Patching**: Splits each chunk into overlapping 32x32 patches.
+- **Waveform to Mel Spectrogram**: Converts audio signals into 128 Mel Spectrogram features [Understanding the Mel Spectrogram](https://medium.com/analytics-vidhya/understanding-the-mel-spectrogram-fca2afa2ce53).
+- **Chunking**: Divides the spectrogram into overlapping chunks of 1024 frames each; each chunk is treated as a separate audio file for inference, these chunks are mean pooled.
+- **Patching**: Splits each chunk into overlapping 32x32 patches; each patch is treated as a "token" for the transformer
 
 Here's an overview of the `AudioFeatureExtractor` class methods:
 
@@ -57,7 +62,7 @@ The model is a custom transformer encoder designed to process audio embeddings. 
 
 You can find the pretrained model in /model/audio_embedding_model.pth
 
-#### Using the Pretrained Model
+#### Using the Pretrained Model for local inference
 
 ```python
 import torch
@@ -104,27 +109,26 @@ python app.py
 ```
 
 ## Next Steps
-Overall, while the project turned out great, there are definitely a lot of areas for improvement/ development, here are some we thought up along the way.
+Overall, while the project turned out great, there are definitely many areas for improvement/ development; here are some ideas we came up with along the way:
 
+- **UI Improvements**:
+  - Add a way for users to upload their own playlists/ songs
 - **Visualization Improvements**:
   - Add information panels for artists and genres similar to how the songs work.
-  - Plot songs atop known genre clusters using k-means cluster centers.
+  - Plot songs atop known genre clusters using k-means cluster centres.
 - **Model Enhancements**:
-  - Increase model parameter size.
-  - Increase the size and diversity of the training dataset.
-  - Experiment with different model architectures/ pretrained models (e.g., LTU).
-  - Loss function was iffy the entire way through, take a second look and try implement contrastive loss.
+  - Increase model parameter size/ Increase the size and diversity of the training dataset.
+  - Find/ manually create a small sample of labelled data to use for portions of supervised learning.
+  - Experiment with different model architectures/pre-trained models (e.g., LTU).
+  - Develop an enhanced evaluation metric for this specific task that would better allow you to compare model performances.
+  - Loss function was iffy the entire way through; take a second look and try to implement contrastive loss.
 - **Data Acquisition**:
-  - Due to Spotify API not being allowed for AI/ML use we had to generate embeddings/ train the model using YouTube music which is very slow and quality of data isn't as high (Intros, Outros, Music videos instead of raw audio, etc.).
-  - Filter for more diverse and representative songs, many songs were from similar genres e.g. latin, latino, reggaeton which skewed the representation.
+  - Due to Spotify API not being allowed for AI/ML use, we had to generate embeddings and train the model using YouTube music, which is very slow and the quality of data isn't as high (Intros, Outros, Music videos instead of raw audio, etc.). We used an external data set to increase training data, but finding an efficient in-house solution would be helpful.
+  - Our model was trained exclusively on music but adding small amounts of other audio patterns could allow the model to generalize better  
+  - Filter for more diverse and representative songs. Many songs were from similar genres, e.g., latin, latino, and reggaeton, which skewed the representation.
 
 ## Citations
-
-- [Wave2Vec](https://arxiv.org/abs/1904.05862)
-- [Whisper](https://openai.com/research/whisper)
-- [BERT](https://arxiv.org/abs/1810.04805)
-- [AST](https://arxiv.org/abs/2007.14062)
-- [LTU](https://arxiv.org/abs/1906.00295)
-
-
-
+- Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, & Ilya Sutskever. (2022). Robust Speech Recognition via Large-Scale Weak Supervision. [Whisper](https://github.com/openai/whisper)
+- Alexei Baevski, Henry Zhou, Abdelrahman Mohamed, & Michael Auli. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. [Wave2Vec](https://huggingface.co/docs/transformers/en/model_doc/wav2vec2)
+- Yuan Gong, Hongyin Luo, Alexander H. Liu, Leonid Karlinsky, & James Glass. (2024). Listen, Think, and Understand. [LTU](https://github.com/YuanGongND/ltu)
+- Yuan Gong, Yu-An Chung, & James Glass (2021). AST: Audio Spectrogram Transformer. In Proc. Interspeech 2021 (pp. 571–575). [AST](https://github.com/YuanGongND/ast)
