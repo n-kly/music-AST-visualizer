@@ -109,7 +109,7 @@ pip install -r requirements.txt
 Run the Dash app:
 
 ```sh
-python app.py
+python app_dash.py
 ```
 
 ## Next Steps
