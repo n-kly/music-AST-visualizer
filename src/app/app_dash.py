@@ -232,11 +232,11 @@ def create_plot(embeddings, metadata, clusters, title, plot_type, model):
     
     return fig
 
-from dash import Dash, html, dcc
+from dash import Dash, html, dccSS
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
-# Create the Dash app
+# Create the Dash appS
 app = Dash(
     external_stylesheets=[dbc.themes.JOURNAL],
     # suppress_callback_exceptions=True
@@ -320,34 +320,6 @@ def render_content(tab, modelName):
     else:
         fig = {}
     return None, fig
-
-# listener for dropdown
-# @app.callback(
-#     Output('plot', 'figure'),
-#     Input('template-dropdown', 'value')
-# )
-# def update_template(value):
-#     if value == 'AST':
-#         modelName = "AST"
-#         fig = create_plot(
-#             embeddings = song_embeddings,
-#             metadata = song_metadata,
-#             clusters = song_clusters,
-#             title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
-#             plot_type = plotType,
-#             model = modelName)
-#     elif value == 'CUSTOM':
-#         modelName = "CUSTOM"
-#         fig = create_plot(
-#             embeddings = artist_embeddings,
-#             metadata = artist_metadata,
-#             clusters = artist_clusters,
-#             title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
-#             plot_type = plotType,
-#             model = modelName)
-#     else:
-#         fig = {}
-#     return fig
 
 @app.callback(
     Output('audio-player', 'src'),
