@@ -339,14 +339,6 @@ def generate_color(name, factor=0.25):
     return '#' + pastel_color_hex
 
 def create_plot(plot_type, model):
-    # Normalize embeddings
-    # embeddings = (embeddings - embeddings.mean(axis=0)) / embeddings.std(axis=0)
-
-    # if model == "AST":
-    #     embeddings = ast_embeddings 
-    # else:
-    #     embeddings = custombusdhadsghu
-
     pca = PCA(n_components=2)
     if model == "AST":
         if plot_type == "song":
@@ -399,7 +391,7 @@ def create_plot(plot_type, model):
     if plot_type == "genre":
         n_clusters = max(clusters // 5, 1)  # For genre embeddings
     else:
-        n_clusters = max(clusters // 20, 1)  # For other embeddings
+        n_clusters = max(clusters // 15, 1)  # For other embeddings
     
     kmeans = KMeans(n_clusters=n_clusters, init="k-means++", n_init=4, random_state=42)
     cluster_labels = kmeans.fit_predict(reduced_embeddings)
@@ -491,8 +483,8 @@ def create_plot(plot_type, model):
         title=title,
         title_x=0.5,
         title_y=0.91,
-        xaxis=dict(visible=True),
-        yaxis=dict(visible=True),
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
         showlegend=False,
         width=800,
         height=800,
@@ -514,7 +506,7 @@ import dash_bootstrap_components as dbc
 # Create the Dash appS
 app = Dash(
     external_stylesheets=[dbc.themes.JOURNAL],
-    # suppress_callback_exceptions=True
+    suppress_callback_exceptions=True
 )
 app.title = "Music Embedding Visualizer"
 
@@ -574,33 +566,6 @@ def render_content(tab, modelName):
     )
 
     return None, fig
-    # if tab == 'song':
-    #     fig = create_plot(
-    #         embeddings = song_embeddings,
-    #         metadata = song_metadata,
-    #         clusters = song_clusters,
-    #         title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
-    #         plot_type = "song",
-    #         model = modelName)
-    # elif tab == 'artist':
-    #     fig = create_plot(
-    #         embeddings = artist_embeddings,
-    #         metadata = artist_metadata,
-    #         clusters = artist_clusters,
-    #         title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
-    #         plot_type = "artist",
-    #         model = modelName)
-    # elif tab == 'genre':
-    #     fig = create_plot(
-    #         embeddings = genre_embeddings,
-    #         metadata = genre_metadata,
-    #         clusters = genre_clusters,
-    #         title = "K-means Clustering on Genre Embeddings (PCA-Reduced)",
-    #         plot_type = "genre",
-    #         model = modelName)
-    # else:
-    #     fig = {}
-    # return None, fig
 
 @app.callback(
     Output('audio-player', 'src'),
