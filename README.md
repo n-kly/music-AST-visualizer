@@ -2,6 +2,8 @@
 
 https://github.com/user-attachments/assets/6f47f6dd-4d3d-4ad9-b3eb-9dc6e9bd11bf
 
+[Alternative video link](https://youtu.be/-ePRB-g-sxg)
+
 ## Overview
 
 This project is a data visualization tool for music embeddings that lets you explore the relationships between different songs, artists, and genres. It converts raw audio files into deep audio embeddings and then visualizes these embeddings to show how similar or different the songs are from each other.
