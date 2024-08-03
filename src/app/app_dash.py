@@ -8,8 +8,6 @@ import numpy as np
 import plotly.graph_objects as go
 from scipy.spatial import Voronoi
 import hashlib
-from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
 
 # Load environment variables
 load_dotenv()
@@ -44,13 +42,13 @@ def fetch_embeddings(index_name, vector_count, dimensions):
     return np.array(embeddings), metadata, vector_count
 
 # Fetch song embeddings
-song_embeddings, song_metadata, song_clusters = fetch_embeddings('song-embeddings', 768, 768)
+song_embeddings, song_metadata, song_clusters = fetch_embeddings('ast-song-embeddings', 768, 768)
 
 # Fetch artist embeddings
-artist_embeddings, artist_metadata, artist_clusters = fetch_embeddings('artist-embeddings', 768, 768)
+artist_embeddings, artist_metadata, artist_clusters = fetch_embeddings('ast-artist-embeddings', 768, 768)
 
 # Fetch genre embeddings
-genre_embeddings, genre_metadata, genre_clusters = fetch_embeddings('genre-embeddings', 768, 768)
+genre_embeddings, genre_metadata, genre_clusters = fetch_embeddings('ast-genre-embeddings', 768, 768)
 
 def voronoi_finite_polygons_2d(vor, radius=None):
     if vor.points.shape[1] != 2:
@@ -108,14 +106,23 @@ def sort_region_counterclockwise(region, vertices):
 
 def generate_color(name, factor=0.25):
     """Generate a pastel color for the given name."""
+    # Generate a color based on the hash of the name
+    name = np.round(name, 3)
+    name = str(name)
     hash_object = hashlib.md5(name.encode())
     hex_dig = hash_object.hexdigest()
     base_color = [int(hex_dig[i:i+2], 16) for i in (0, 2, 4)]
+
+    # Mix the color with white
     pastel_color = [(1 - factor) * c + factor * 255 for c in base_color]
     pastel_color_hex = ''.join(f'{int(c):02x}' for c in pastel_color)
+
     return '#' + pastel_color_hex
 
-def create_plot(embeddings, metadata, clusters, title, plot_type):
+def create_plot(embeddings, metadata, clusters, title, plot_type, model):
+    # Normalize embeddings
+    # embeddings = (embeddings - embeddings.mean(axis=0)) / embeddings.std(axis=0)
+
     pca = PCA(n_components=2)
     reduced_embeddings = pca.fit_transform(embeddings)
     
@@ -138,6 +145,15 @@ def create_plot(embeddings, metadata, clusters, title, plot_type):
     if plot_type == "song":
         data['artist'] = [m['artist'] for m in metadata]
         data['preview_url'] = [m['preview_url'] for m in metadata]
+        data['album'] = [m['album'] for m in metadata]
+        data['cover_image_url'] = [m['cover_image_url'] for m in metadata]
+        data['genre'] = [m['genre'] for m in metadata]
+    elif plot_type == "artist":
+        data['genres'] = [m['genres'] for m in metadata]
+        data['songs'] = [m['songs'] for m in metadata]
+    elif plot_type == "genre":
+        data['artists'] = [m['artists'] for m in metadata]
+        data['songs'] = [m['songs'] for m in metadata]
     
     df = pd.DataFrame(data)
     
@@ -149,7 +165,7 @@ def create_plot(embeddings, metadata, clusters, title, plot_type):
         regions, vertices = voronoi_finite_polygons_2d(vor)
         for region, center in zip(regions, kmeans.cluster_centers_):
             polygon = vertices[region]
-            color = generate_color(str(center))
+            color = generate_color(center)
             fig.add_trace(go.Scatter(
                 x=polygon[:, 0],
                 y=polygon[:, 1],
@@ -169,12 +185,25 @@ def create_plot(embeddings, metadata, clusters, title, plot_type):
     ))
 
     # Add scatter plot of points
+    custom_data = pd.DataFrame()
     if plot_type == "song":
         hover_text = df.apply(lambda row: f"{row['name']} by {row['artist']}", axis=1)
-        custom_data = df['preview_url']
-    else:
+        custom_data['preview_url'] = df['preview_url']
+        custom_data['name'] = df['name']
+        custom_data['artist'] = df['artist']
+        custom_data['album'] = df['album']
+        custom_data['cover_image_url'] = df['cover_image_url']
+        custom_data['genre'] = df['genre']
+    elif plot_type == "artist":
         hover_text = df['name']
-        custom_data = None
+        custom_data['name'] = df['name']
+        custom_data['genres'] = df['genres']
+        custom_data['songs'] = df['songs']
+    elif plot_type == "genre":
+        hover_text = df['name']
+        custom_data['name'] = df['name']
+        custom_data['artists'] = df['artists']
+        custom_data['songs'] = df['songs']
     
     fig.add_trace(go.Scatter(
         x=df['x'],
@@ -188,6 +217,8 @@ def create_plot(embeddings, metadata, clusters, title, plot_type):
     
     fig.update_layout(
         title=title,
+        title_x=0.5,
+        title_y=0.91,
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
         showlegend=False,
@@ -201,47 +232,143 @@ def create_plot(embeddings, metadata, clusters, title, plot_type):
     
     return fig
 
-# Dash app
-app = Dash(__name__)
+from dash import Dash, html, dcc
+from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 
-app.layout = html.Div([
-    html.H1("Song Embeddings Visualization"),
+# Create the Dash app
+app = Dash(
+    external_stylesheets=[dbc.themes.JOURNAL],
+    # suppress_callback_exceptions=True
+)
+app.title = "Music Embedding Visualizer"
+
+# Placeholder image URL
+placeholder_image_url = "https://www.iforium.com/wp-content/uploads/Placeholder-Image-400.png"
+
+# Layout
+app.layout = dbc.Container([
+    html.Label('Model:', style={'fontSize': '16px'}),
+    dcc.Dropdown(
+        id='template-dropdown',
+        options=[
+            {'label': 'Audio Spectogram Transformer', 'value': 'AST'},
+            {'label': 'Custom in-house', 'value': 'CUSTOM'},
+        ],
+        value='AST',
+        style={'marginBottom': '20px'}
+    ),
     dcc.Tabs(id="tabs", value='song', children=[
-        dcc.Tab(label='Song Embeddings', value='song'),
-        dcc.Tab(label='Artist Embeddings', value='artist'),
-        dcc.Tab(label='Genre Embeddings', value='genre'),
+        dcc.Tab(label='Song Embeddings', value='song', className='custom-tab', selected_className='custom-tab--selected'),
+        dcc.Tab(label='Artist Embeddings', value='artist', className='custom-tab', selected_className='custom-tab--selected'),
+        dcc.Tab(label='Genre Embeddings', value='genre', className='custom-tab', selected_className='custom-tab--selected'),
     ]),
     html.Div(id='tabs-content'),
-    dcc.Graph(id='plot', style={'width': '800px', 'height': '800px'}),
-    html.Audio(id='audio-player', controls=True, autoPlay=True)
-])
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='plot', config={'displayModeBar': False}),
+        ], width=7, lg=7),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardImg(src=placeholder_image_url, top=True, id='song-image', style={'maxHeight': '350px', 'objectFit': 'contain'}),
+                dbc.CardBody([
+                    html.H5("Song Details", className="card-title"),
+                    html.P(id='song-name', className="card-text"),
+                    html.P(id='artist-name', className="card-text"),
+                    html.P(id='album-name', className="card-text"),
+                    html.P(id='genre-name', className="card-text"),
+                ]),
+                dbc.CardFooter([
+                    html.Audio(id='audio-player', controls=True, autoPlay=True, style={'width': '100%'})
+                ], className="text-center")
+            ], style={'height': 'auto', 'margin': '100px 0'})
+        ], width=3, lg=3)
+    ])
+], fluid=True, style={'margin': '20px auto', 'maxWidth': '1500px', 'overflow-x': 'hidden', 'overflow-y': 'hidden'})
 
 @app.callback(
     Output('tabs-content', 'children'),
     Output('plot', 'figure'),
-    Input('tabs', 'value')
+    Input('tabs', 'value'),
+    Input('template-dropdown', 'value')
 )
-def render_content(tab):
+def render_content(tab, modelName):
     if tab == 'song':
-        fig = create_plot(song_embeddings, song_metadata, song_clusters, "K-means Clustering on Song Embeddings (PCA-Reduced)", "song")
+        fig = create_plot(
+            embeddings = song_embeddings,
+            metadata = song_metadata,
+            clusters = song_clusters,
+            title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
+            plot_type = "song",
+            model = modelName)
     elif tab == 'artist':
-        fig = create_plot(artist_embeddings, artist_metadata, artist_clusters, "K-means Clustering on Artist Embeddings (PCA-Reduced)", "artist")
+        fig = create_plot(
+            embeddings = artist_embeddings,
+            metadata = artist_metadata,
+            clusters = artist_clusters,
+            title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
+            plot_type = "artist",
+            model = modelName)
     elif tab == 'genre':
-        fig = create_plot(genre_embeddings, genre_metadata, genre_clusters, "K-means Clustering on Genre Embeddings (PCA-Reduced)", "genre")
+        fig = create_plot(
+            embeddings = genre_embeddings,
+            metadata = genre_metadata,
+            clusters = genre_clusters,
+            title = "K-means Clustering on Genre Embeddings (PCA-Reduced)",
+            plot_type = "genre",
+            model = modelName)
     else:
         fig = {}
     return None, fig
 
+# listener for dropdown
+# @app.callback(
+#     Output('plot', 'figure'),
+#     Input('template-dropdown', 'value')
+# )
+# def update_template(value):
+#     if value == 'AST':
+#         modelName = "AST"
+#         fig = create_plot(
+#             embeddings = song_embeddings,
+#             metadata = song_metadata,
+#             clusters = song_clusters,
+#             title = "K-means Clustering on Song Embeddings (PCA-Reduced)",
+#             plot_type = plotType,
+#             model = modelName)
+#     elif value == 'CUSTOM':
+#         modelName = "CUSTOM"
+#         fig = create_plot(
+#             embeddings = artist_embeddings,
+#             metadata = artist_metadata,
+#             clusters = artist_clusters,
+#             title = "K-means Clustering on Artist Embeddings (PCA-Reduced)",
+#             plot_type = plotType,
+#             model = modelName)
+#     else:
+#         fig = {}
+#     return fig
+
 @app.callback(
     Output('audio-player', 'src'),
     Output('audio-player', 'style'),
+    Output('song-name', 'children'),
+    Output('artist-name', 'children'),
+    Output('genre-name', 'children'),
+    Output('album-name', 'children'),
+    Output('song-image', 'src'),
     Input('plot', 'hoverData')
 )
 def play_audio(hoverData):
     if hoverData and 'customdata' in hoverData['points'][0]:
-        preview_url = hoverData['points'][0]['customdata']
-        return preview_url, {'display': 'block'}
-    return '', {'display': 'none'}
+        preview_url = hoverData['points'][0]['customdata'][0]
+        song_name = f"Song: {hoverData['points'][0]['customdata'][1]}"
+        artist_name = f"Artist: {hoverData['points'][0]['customdata'][2]}"
+        album_name = f"Album: {hoverData['points'][0]['customdata'][3]}"
+        genre_name = f"Genre: {hoverData['points'][0]['customdata'][5]}"
+        song_image = hoverData['points'][0]['customdata'][4]
+        return preview_url, {'display': 'block'}, song_name, artist_name, genre_name, album_name, song_image
+    return '', {'display': 'none'}, "Song: ", "Artist: ", "Genre: ", "Album: ", placeholder_image_url
 
 if __name__ == '__main__':
     app.run_server(debug=True)
