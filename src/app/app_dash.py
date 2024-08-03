@@ -235,6 +235,11 @@ def create_plot(embeddings, metadata, clusters, title, plot_type, model):
     # Normalize embeddings
     # embeddings = (embeddings - embeddings.mean(axis=0)) / embeddings.std(axis=0)
 
+    # if model == "AST":
+    #     embeddings = ast_embeddings 
+    # else:
+    #     embeddings = custombusdhadsghu
+
     pca = PCA(n_components=2)
     reduced_embeddings = pca.fit_transform(embeddings)
 
@@ -338,21 +343,24 @@ def create_plot(embeddings, metadata, clusters, title, plot_type, model):
         title=title,
         title_x=0.5,
         title_y=0.91,
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False),
+        xaxis=dict(visible=True),
+        yaxis=dict(visible=True),
         showlegend=False,
         width=800,
         height=800,
         plot_bgcolor='rgba(0,0,0,0)'
     )
+    print(df['x'].min(), df['x'].max(), df['y'].min(), df['y'].max())
+    margin_x = (df['x'].max() - df['x'].min()) * 0.1
+    margin_y = (df['y'].max() - df['y'].min()) * 0.1
     
-    fig.update_xaxes(minallowed=df['x'].min()-1, maxallowed=df['x'].max()+1)
-    fig.update_yaxes(minallowed=df['y'].min()-1, maxallowed=(df['y'].max()+1))
+    fig.update_xaxes(minallowed=df['x'].min()-margin_x, maxallowed=df['x'].max()+margin_x)
+    fig.update_yaxes(minallowed=df['y'].min()-margin_y, maxallowed=(df['y'].max()+margin_y))
     
     return fig
 
 
-from dash import Dash, html, dccSS
+from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -413,6 +421,12 @@ app.layout = dbc.Container([
     Input('template-dropdown', 'value')
 )
 def render_content(tab, modelName):
+    # fig = create_plot(
+    #     model=modelName,
+    #     plot_type=tab,
+    # )
+
+
     if tab == 'song':
         fig = create_plot(
             embeddings = song_embeddings,
