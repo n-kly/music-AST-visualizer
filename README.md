@@ -1,6 +1,6 @@
 # Audio Embeddings Visualizer
 
-[![YouTube](http://i.ytimg.com/vi/oolIoagS3B0/hqdefault.jpg)](https://www.youtube.com/watch?v=oolIoagS3B0)
+https://github.com/user-attachments/assets/6f47f6dd-4d3d-4ad9-b3eb-9dc6e9bd11bf
 
 ## Overview
 
