@@ -127,7 +127,7 @@ Overall, while the project turned out great, there are definitely many areas for
   - Our model was trained exclusively on music but adding small amounts of other audio patterns could allow the model to generalize better  
   - Filter for more diverse and representative songs. Many songs were from similar genres, e.g., latin, latino, and reggaeton, which skewed the representation.
 
-## Citations
+## References
 - Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, & Ilya Sutskever. (2022). Robust Speech Recognition via Large-Scale Weak Supervision. [Whisper](https://github.com/openai/whisper)
 - Alexei Baevski, Henry Zhou, Abdelrahman Mohamed, & Michael Auli. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. [Wave2Vec](https://huggingface.co/docs/transformers/en/model_doc/wav2vec2)
 - Yuan Gong, Hongyin Luo, Alexander H. Liu, Leonid Karlinsky, & James Glass. (2024). Listen, Think, and Understand. [LTU](https://github.com/YuanGongND/ltu)
