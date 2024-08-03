@@ -13,7 +13,7 @@ However, we found that there were few pre-trained available models that were spe
 
 ## Model Overview
 
-![Model Architecture](https://github.com/n-kly/music-AST-visualizer/blob/5d55c260da8ed96864f964f80b50e6bc8118ee84/images/architecture.png)
+![Model Architecture](https://github.com/n-kly/music-AST-visualizer/blob/22f65e544f4fcdb7dbc45284186c943c2eb7376a/images/architecture.png)
 
 ### Preprocessing
 
