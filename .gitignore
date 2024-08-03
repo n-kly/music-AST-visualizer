@@ -166,5 +166,4 @@ cython_debug/
 /previews
 
 # VSCODE
-.vscode
-/.vscode
+**/.vscode/
